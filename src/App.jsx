@@ -3932,7 +3932,91 @@ function LivePage({ onLogout, user }) {
               <strong>실시간 추첨 진행 중</strong>
             </div>
 
-            <h1>{roundTitle}</h1>
+            <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    flexWrap: "wrap",
+  }}
+>
+  <h1 style={{ margin: 0 }}>{roundTitle}</h1>
+
+  {kujiList.length > 1 && (
+    <select
+      value={activeKujiId}
+      onChange={(event) => {<select
+  value={activeKujiId}
+  onChange={(event) => {
+    if (isPreparing || isAppraising || pendingNumbers.length > 0) {
+      setNotice("추첨 또는 감정 진행 중에는 쿠지를 변경할 수 없습니다.");
+      return;
+    }
+
+    const selectedKuji = kujiList.find(
+      (kuji) => String(kuji.id) === event.target.value,
+    );
+
+    if (selectedKuji) {
+      activateKuji(selectedKuji);
+    }
+  }}
+  aria-label="진행할 쿠지 선택"
+  style={{
+    minWidth: "190px",
+    height: "40px",
+    padding: "0 36px 0 14px",
+    borderRadius: "12px",
+    border: "1px solid rgba(255, 211, 77, 0.45)",
+    background: "rgba(12, 20, 34, 0.92)",
+    color: "#ffffff",
+    fontSize: "13px",
+    fontWeight: 800,
+    cursor: "pointer",
+    outline: "none",
+  }}
+>
+  {kujiList.map((kuji) => (
+    <option key={kuji.id} value={String(kuji.id)}>
+      {kuji.id === activeKujiId
+        ? `● ${kuji.title} · 진행 중`
+        : kuji.title}
+    </option>
+  ))}
+</select>
+        const selectedKuji = kujiList.find(
+          (kuji) => String(kuji.id) === event.target.value,
+        );
+
+        if (selectedKuji) {
+          activateKuji(selectedKuji);
+        }
+      }}
+      aria-label="진행할 쿠지 선택"
+      style={{
+        minWidth: "190px",
+        height: "40px",
+        padding: "0 36px 0 14px",
+        borderRadius: "12px",
+        border: "1px solid rgba(255, 211, 77, 0.45)",
+        background: "rgba(12, 20, 34, 0.92)",
+        color: "#ffffff",
+        fontSize: "13px",
+        fontWeight: 800,
+        cursor: "pointer",
+        outline: "none",
+      }}
+    >
+      {kujiList.map((kuji) => (
+        <option key={kuji.id} value={String(kuji.id)}>
+          {kuji.id === activeKujiId
+            ? `● ${kuji.title} · 진행 중`
+            : kuji.title}
+        </option>
+      ))}
+    </select>
+  )}
+</div>
           </div>
 
           {/* QUEUE는 남는 너비 전체, 우측 추첨 패널은 190px 고정 */}
