@@ -1,0 +1,222 @@
+.draw-summary.draw-summary-simple {
+  width: 100%;
+  min-height: 108px;
+  margin: 0;
+  padding: 18px 36px;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  align-items: center;
+
+  border: 1px solid rgba(50, 126, 168, 0.42);
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(8, 28, 43, 0.97) 0%,
+      rgba(6, 23, 36, 0.99) 100%
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 12px 30px rgba(0, 0, 0, 0.12);
+
+  overflow: hidden;
+}
+
+.draw-summary-simple .summary-simple-item {
+  min-width: 0;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.draw-summary-simple .summary-simple-item > span {
+  display: block;
+  margin: 0 0 7px;
+
+  color: rgba(164, 186, 203, 0.72);
+
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.2px;
+}
+
+.draw-summary-simple .summary-simple-item > strong {
+  margin: 0;
+
+  color: #f7fbff;
+
+  font-size: clamp(25px, 2.1vw, 34px);
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.draw-summary-simple .summary-remaining-ball {
+  color: #42c5ff;
+}
+
+.draw-summary-simple .summary-simple-divider {
+  width: 1px;
+  height: 64px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(64, 141, 181, 0) 0%,
+    rgba(64, 141, 181, 0.42) 20%,
+    rgba(64, 141, 181, 0.42) 80%,
+    rgba(64, 141, 181, 0) 100%
+  );
+}
+
+.draw-summary-simple .summary-price-simple {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.draw-summary-simple .summary-price-simple i {
+  width: 27px;
+  height: 27px;
+  flex: 0 0 27px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #ffca3a;
+  color: #18202a;
+
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1;
+
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(255, 202, 58, 0.16);
+}
+
+/* 기존 5칸 헤더 스타일이 남아 있어도 새 2칸 헤더가 우선 적용되도록 강제 */
+.draw-summary.draw-summary-simple > div {
+  border: 0;
+  background: transparent;
+}
+
+.draw-summary.draw-summary-simple::before,
+.draw-summary.draw-summary-simple::after {
+  display: none;
+}
+
+/* 태블릿 */
+@media (max-width: 900px) {
+  .draw-summary.draw-summary-simple {
+    min-height: 96px;
+    padding: 16px 24px;
+  }
+
+  .draw-summary-simple .summary-simple-divider {
+    height: 54px;
+  }
+
+  .draw-summary-simple .summary-simple-item > strong {
+    font-size: 27px;
+  }
+}
+
+/* 모바일 */
+@media (max-width: 560px) {
+  .draw-summary.draw-summary-simple {
+    min-height: 86px;
+    padding: 14px 12px;
+    border-radius: 11px;
+  }
+
+  .draw-summary-simple .summary-simple-item > span {
+    margin-bottom: 6px;
+    font-size: 10px;
+  }
+
+  .draw-summary-simple .summary-simple-item > strong {
+    font-size: 21px;
+    letter-spacing: -0.6px;
+  }
+
+  .draw-summary-simple .summary-simple-divider {
+    height: 46px;
+  }
+
+  .draw-summary-simple .summary-price-simple {
+    gap: 6px;
+  }
+
+  .draw-summary-simple .summary-price-simple i {
+    width: 23px;
+    height: 23px;
+    flex-basis: 23px;
+    font-size: 10px;
+  }
+}.broadcast-price-stat {
+  min-width: 104px;
+  padding-left: 18px;
+  margin-left: 4px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.broadcast-price-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.broadcast-price-icon {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #ffd044;
+  color: #111820;
+
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1;
+
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.14),
+    0 3px 10px rgba(255, 208, 68, 0.17);
+}
+
+@media (max-width: 1280px) {
+  .broadcast-price-stat {
+    min-width: 92px;
+    padding-left: 12px;
+  }
+
+  .broadcast-price-value {
+    gap: 5px;
+  }
+
+  .broadcast-price-icon {
+    width: 21px;
+    height: 21px;
+    flex-basis: 21px;
+    font-size: 10px;
+  }
+}
