@@ -3833,15 +3833,15 @@ function LivePage({ onLogout, user }) {
           </button>
 
           <button
-            type="button"
-            className="header-manage-button"
-           onClick={() => {
-  window.location.href = "/manage";
-}}
-          >
-            <span>▦</span>
-            관리 열기
-          </button>
+  type="button"
+  className="header-manage-button"
+  onClick={() => {
+    window.location.href = "/manage";
+  }}
+>
+  <span>▦</span>
+  관리 열기
+</button>
 
           <button
             type="button"
