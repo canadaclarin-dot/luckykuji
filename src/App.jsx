@@ -4983,7 +4983,9 @@ function LivePage({ onLogout, user }) {
               <button
                 type="button"
                 className="primary-action"
-                onClick={() => window.open("/", "_blank", "noopener,noreferrer")}
+                onClick={() => {
+  window.location.replace("/manage");
+}}
               >
                 라이브 화면 열기
               </button>
