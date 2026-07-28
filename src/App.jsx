@@ -3835,7 +3835,9 @@ function LivePage({ onLogout, user }) {
           <button
             type="button"
             className="header-manage-button"
-            onClick={() => window.open("/manage", "_blank", "noopener,noreferrer")}
+           onClick={() => {
+  window.location.href = "/manage";
+}}
           >
             <span>▦</span>
             관리 열기
@@ -3890,7 +3892,9 @@ function LivePage({ onLogout, user }) {
           <button
             type="button"
             className="sidebar-live-button"
-            onClick={() => window.open("/", "_blank", "noopener,noreferrer")}
+           onClick={() => {
+  window.location.href = "/";
+}}
           >
             <span>●</span>
             라이브 화면 열기
