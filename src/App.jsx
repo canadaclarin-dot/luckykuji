@@ -3715,10 +3715,93 @@ function LivePage({ onLogout, user }) {
             <b>KUJI</b>
           </div>
 
-          <span className="broadcast-live">
-            <i />
-            LIVE
-          </span>
+          {kujiList.length > 1 && (
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                marginLeft: "10px",
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  left: "14px",
+                  zIndex: 1,
+                  fontSize: "14px",
+                  pointerEvents: "none",
+                }}
+              >
+                ◆
+              </span>
+
+              <select
+                value={String(activeKujiId)}
+                onChange={(event) => {
+                  if (
+                    isPreparing ||
+                    isAppraising ||
+                    pendingNumbers.length > 0
+                  ) {
+                    setNotice(
+                      "추첨 또는 감정 진행 중에는 쿠지를 변경할 수 없습니다.",
+                    );
+                    return;
+                  }
+
+                  const selectedKuji = kujiList.find(
+                    (kuji) =>
+                      String(kuji.id) === String(event.target.value),
+                  );
+
+                  if (selectedKuji) {
+                    activateKuji(selectedKuji);
+                  }
+                }}
+                aria-label="진행할 쿠지 선택"
+                title="진행할 쿠지 선택"
+                style={{
+                  width: "clamp(170px, 20vw, 260px)",
+                  height: "38px",
+                  padding: "0 38px 0 36px",
+                  borderRadius: "999px",
+                  border: "1px solid rgba(72, 196, 255, 0.42)",
+                  background:
+                    "linear-gradient(135deg, rgba(16, 31, 48, 0.98), rgba(8, 18, 31, 0.98))",
+                  color: "#f7fbff",
+                  boxShadow:
+                    "inset 0 1px 0 rgba(255,255,255,.08), 0 7px 18px rgba(0,0,0,.22)",
+                  fontSize: "13px",
+                  fontWeight: 800,
+                  letterSpacing: "-0.01em",
+                  cursor: "pointer",
+                  outline: "none",
+                  colorScheme: "dark",
+                }}
+              >
+                {kujiList.map((kuji) => {
+                  const kujiTotal = Math.max(
+                    1,
+                    Number(kuji.totalNumbers) || 1,
+                  );
+                  const kujiUsed = Array.isArray(kuji.usedNumbers)
+                    ? kuji.usedNumbers.length
+                    : 0;
+                  const kujiRemaining = Math.max(0, kujiTotal - kujiUsed);
+
+                  return (
+                    <option key={kuji.id} value={String(kuji.id)}>
+                      {kuji.id === activeKujiId
+                        ? `${kuji.title} · 진행 중`
+                        : `${kuji.title} · ${kujiRemaining}개 남음`}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          )}
         </div>
 
         <div className="broadcast-stats" aria-label="추첨 현황">
@@ -3932,91 +4015,7 @@ function LivePage({ onLogout, user }) {
               <strong>실시간 추첨 진행 중</strong>
             </div>
 
-            <div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    flexWrap: "wrap",
-  }}
->
-  <h1 style={{ margin: 0 }}>{roundTitle}</h1>
-
-  {kujiList.length > 1 && (
-    <select
-      value={activeKujiId}
-      onChange={(event) => {<select
-  value={activeKujiId}
-  onChange={(event) => {
-    if (isPreparing || isAppraising || pendingNumbers.length > 0) {
-      setNotice("추첨 또는 감정 진행 중에는 쿠지를 변경할 수 없습니다.");
-      return;
-    }
-
-    const selectedKuji = kujiList.find(
-      (kuji) => String(kuji.id) === event.target.value,
-    );
-
-    if (selectedKuji) {
-      activateKuji(selectedKuji);
-    }
-  }}
-  aria-label="진행할 쿠지 선택"
-  style={{
-    minWidth: "190px",
-    height: "40px",
-    padding: "0 36px 0 14px",
-    borderRadius: "12px",
-    border: "1px solid rgba(255, 211, 77, 0.45)",
-    background: "rgba(12, 20, 34, 0.92)",
-    color: "#ffffff",
-    fontSize: "13px",
-    fontWeight: 800,
-    cursor: "pointer",
-    outline: "none",
-  }}
->
-  {kujiList.map((kuji) => (
-    <option key={kuji.id} value={String(kuji.id)}>
-      {kuji.id === activeKujiId
-        ? `● ${kuji.title} · 진행 중`
-        : kuji.title}
-    </option>
-  ))}
-</select>
-        const selectedKuji = kujiList.find(
-          (kuji) => String(kuji.id) === event.target.value,
-        );
-
-        if (selectedKuji) {
-          activateKuji(selectedKuji);
-        }
-      }}
-      aria-label="진행할 쿠지 선택"
-      style={{
-        minWidth: "190px",
-        height: "40px",
-        padding: "0 36px 0 14px",
-        borderRadius: "12px",
-        border: "1px solid rgba(255, 211, 77, 0.45)",
-        background: "rgba(12, 20, 34, 0.92)",
-        color: "#ffffff",
-        fontSize: "13px",
-        fontWeight: 800,
-        cursor: "pointer",
-        outline: "none",
-      }}
-    >
-      {kujiList.map((kuji) => (
-        <option key={kuji.id} value={String(kuji.id)}>
-          {kuji.id === activeKujiId
-            ? `● ${kuji.title} · 진행 중`
-            : kuji.title}
-        </option>
-      ))}
-    </select>
-  )}
-</div>
+            <h1>{roundTitle}</h1>
           </div>
 
           {/* QUEUE는 남는 너비 전체, 우측 추첨 패널은 190px 고정 */}
