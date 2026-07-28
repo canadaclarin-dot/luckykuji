@@ -611,6 +611,7 @@ function LivePage({ onLogout, user }) {
   const [lastPlayer, setLastPlayer] = useState("");
 
   const [showSettings, setShowSettings] = useState(false);
+  const [showHeaderKujiMenu, setShowHeaderKujiMenu] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [selectedRecordNickname, setSelectedRecordNickname] = useState("");
   const [isPrizePanelOpen, setIsPrizePanelOpen] = useState(false);
@@ -3719,87 +3720,235 @@ function LivePage({ onLogout, user }) {
             <div
               style={{
                 position: "relative",
-                display: "flex",
-                alignItems: "center",
                 marginLeft: "10px",
+                zIndex: 20000,
               }}
             >
-              <span
-                aria-hidden="true"
-                style={{
-                  position: "absolute",
-                  left: "14px",
-                  zIndex: 1,
-                  fontSize: "14px",
-                  pointerEvents: "none",
-                }}
-              >
-                ◆
-              </span>
-
-              <select
-                value={String(activeKujiId)}
-                onChange={(event) => {
-                  if (
-                    isPreparing ||
-                    isAppraising ||
-                    pendingNumbers.length > 0
-                  ) {
-                    setNotice(
-                      "추첨 또는 감정 진행 중에는 쿠지를 변경할 수 없습니다.",
-                    );
-                    return;
-                  }
-
-                  const selectedKuji = kujiList.find(
-                    (kuji) =>
-                      String(kuji.id) === String(event.target.value),
-                  );
-
-                  if (selectedKuji) {
-                    activateKuji(selectedKuji);
-                  }
-                }}
+              <button
+                type="button"
+                onClick={() => setShowHeaderKujiMenu((current) => !current)}
+                aria-haspopup="listbox"
+                aria-expanded={showHeaderKujiMenu}
                 aria-label="진행할 쿠지 선택"
-                title="진행할 쿠지 선택"
                 style={{
-                  width: "clamp(170px, 20vw, 260px)",
-                  height: "38px",
-                  padding: "0 38px 0 36px",
+                  width: "clamp(180px, 22vw, 270px)",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "0 13px",
                   borderRadius: "999px",
-                  border: "1px solid rgba(72, 196, 255, 0.42)",
+                  border: showHeaderKujiMenu
+                    ? "1px solid rgba(111, 209, 255, 0.95)"
+                    : "1px solid rgba(72, 196, 255, 0.48)",
                   background:
-                    "linear-gradient(135deg, rgba(16, 31, 48, 0.98), rgba(8, 18, 31, 0.98))",
-                  color: "#f7fbff",
-                  boxShadow:
-                    "inset 0 1px 0 rgba(255,255,255,.08), 0 7px 18px rgba(0,0,0,.22)",
-                  fontSize: "13px",
-                  fontWeight: 800,
-                  letterSpacing: "-0.01em",
+                    "linear-gradient(135deg, rgba(17, 35, 54, 0.99), rgba(7, 18, 31, 0.99))",
+                  color: "#ffffff",
+                  boxShadow: showHeaderKujiMenu
+                    ? "0 0 0 3px rgba(66, 190, 255, 0.14), 0 10px 24px rgba(0,0,0,.38)"
+                    : "inset 0 1px 0 rgba(255,255,255,.08), 0 7px 18px rgba(0,0,0,.24)",
                   cursor: "pointer",
                   outline: "none",
-                  colorScheme: "dark",
                 }}
               >
-                {kujiList.map((kuji) => {
-                  const kujiTotal = Math.max(
-                    1,
-                    Number(kuji.totalNumbers) || 1,
-                  );
-                  const kujiUsed = Array.isArray(kuji.usedNumbers)
-                    ? kuji.usedNumbers.length
-                    : 0;
-                  const kujiRemaining = Math.max(0, kujiTotal - kujiUsed);
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: "17px",
+                    height: "17px",
+                    display: "grid",
+                    placeItems: "center",
+                    borderRadius: "5px",
+                    background: "linear-gradient(135deg, #ffffff, #8dd8ff)",
+                    color: "#10243a",
+                    fontSize: "9px",
+                    flexShrink: 0,
+                    transform: "rotate(45deg)",
+                    boxShadow: "0 0 12px rgba(95, 202, 255, .35)",
+                  }}
+                >
+                  <span style={{ transform: "rotate(-45deg)" }}>◆</span>
+                </span>
 
-                  return (
-                    <option key={kuji.id} value={String(kuji.id)}>
-                      {kuji.id === activeKujiId
-                        ? `${kuji.title} · 진행 중`
-                        : `${kuji.title} · ${kujiRemaining}개 남음`}
-                    </option>
-                  );
-                })}
-              </select>
+                <strong
+                  style={{
+                    minWidth: 0,
+                    flex: 1,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    textAlign: "left",
+                    fontSize: "13px",
+                    fontWeight: 850,
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  {roundTitle} · 진행 중
+                </strong>
+
+                <span
+                  aria-hidden="true"
+                  style={{
+                    flexShrink: 0,
+                    fontSize: "12px",
+                    opacity: 0.8,
+                    transform: showHeaderKujiMenu
+                      ? "rotate(180deg)"
+                      : "rotate(0deg)",
+                    transition: "transform .18s ease",
+                  }}
+                >
+                  ▼
+                </span>
+              </button>
+
+              {showHeaderKujiMenu && (
+                <div
+                  role="listbox"
+                  aria-label="쿠지 목록"
+                  style={{
+                    position: "absolute",
+                    top: "48px",
+                    left: 0,
+                    width: "clamp(245px, 28vw, 330px)",
+                    maxHeight: "320px",
+                    padding: "7px",
+                    overflowY: "auto",
+                    borderRadius: "16px",
+                    border: "1px solid rgba(93, 196, 245, 0.38)",
+                    background:
+                      "linear-gradient(180deg, rgba(13, 28, 44, 0.995), rgba(6, 15, 27, 0.995))",
+                    boxShadow:
+                      "0 20px 55px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.07)",
+                    zIndex: 30000,
+                  }}
+                >
+                  {kujiList.map((kuji) => {
+                    const isActive =
+                      String(kuji.id) === String(activeKujiId);
+                    const kujiTotal = Math.max(
+                      1,
+                      Number(kuji.totalNumbers) || 1,
+                    );
+                    const kujiUsed = Array.isArray(kuji.usedNumbers)
+                      ? kuji.usedNumbers.length
+                      : 0;
+                    const kujiRemaining = Math.max(
+                      0,
+                      kujiTotal - kujiUsed,
+                    );
+
+                    return (
+                      <button
+                        key={kuji.id}
+                        type="button"
+                        role="option"
+                        aria-selected={isActive}
+                        onClick={() => {
+                          if (
+                            isPreparing ||
+                            isAppraising ||
+                            pendingNumbers.length > 0
+                          ) {
+                            setNotice(
+                              "추첨 또는 감정 진행 중에는 쿠지를 변경할 수 없습니다.",
+                            );
+                            setShowHeaderKujiMenu(false);
+                            return;
+                          }
+
+                          if (!isActive) {
+                            activateKuji(kuji);
+                          }
+
+                          setShowHeaderKujiMenu(false);
+                        }}
+                        style={{
+                          width: "100%",
+                          minHeight: "58px",
+                          display: "grid",
+                          gridTemplateColumns: "12px minmax(0, 1fr) auto",
+                          alignItems: "center",
+                          gap: "11px",
+                          padding: "10px 12px",
+                          margin: 0,
+                          border: "none",
+                          borderRadius: "11px",
+                          background: isActive
+                            ? "linear-gradient(135deg, rgba(47, 155, 215, .34), rgba(34, 92, 139, .24))"
+                            : "transparent",
+                          color: "#ffffff",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          outline: "none",
+                        }}
+                      >
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            width: "9px",
+                            height: "9px",
+                            borderRadius: "50%",
+                            background: isActive ? "#62ddff" : "#52677b",
+                            boxShadow: isActive
+                              ? "0 0 12px rgba(98, 221, 255, .9)"
+                              : "none",
+                          }}
+                        />
+
+                        <span style={{ minWidth: 0 }}>
+                          <strong
+                            style={{
+                              display: "block",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              fontSize: "14px",
+                              fontWeight: 850,
+                              color: isActive ? "#ffffff" : "#eaf5ff",
+                            }}
+                          >
+                            {kuji.title || "이름 없는 쿠지"}
+                          </strong>
+
+                          <span
+                            style={{
+                              display: "block",
+                              marginTop: "4px",
+                              fontSize: "11px",
+                              color: isActive
+                                ? "#9ee7ff"
+                                : "rgba(211, 230, 245, .68)",
+                            }}
+                          >
+                            {isActive
+                              ? "현재 진행 중"
+                              : `전체 ${kujiTotal}개 중 ${kujiRemaining}개 남음`}
+                          </span>
+                        </span>
+
+                        <span
+                          style={{
+                            padding: "5px 8px",
+                            borderRadius: "999px",
+                            background: isActive
+                              ? "rgba(94, 218, 255, .15)"
+                              : "rgba(255,255,255,.055)",
+                            color: isActive
+                              ? "#9eeaff"
+                              : "rgba(231, 242, 251, .78)",
+                            fontSize: "11px",
+                            fontWeight: 800,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {isActive ? "진행 중" : `${kujiRemaining} 남음`}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
