@@ -4981,14 +4981,14 @@ function LivePage({ onLogout, user }) {
                 개봉 기록 초기화
               </button>
               <button
-                type="button"
-                className="primary-action"
-                onClick={() => {
-  window.location.replace("/manage");
-}}
-              >
-                라이브 화면 열기
-              </button>
+  type="button"
+  className="primary-action"
+  onClick={() => {
+    window.location.href = "/";
+  }}
+>
+  라이브 화면 열기
+</button>
             </div>
           </div>
 
