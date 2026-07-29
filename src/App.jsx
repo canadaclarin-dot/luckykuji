@@ -1872,7 +1872,7 @@ function LivePage({ onLogout, user }) {
   };
 
   const isSimultaneousReveal =
-    isSimultaneousReveal && pendingNumbers.length > 1;
+    revealMode === "simultaneous" && pendingNumbers.length > 1;
 
   const advanceReveal = async () => {
     if (isAppraising || appraisalFinished) return;
