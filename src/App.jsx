@@ -1843,8 +1843,10 @@ function LivePage({ onLogout, user }) {
 
     playDrawStartSound();
 
-    // 번호가 여러 개면 항상 동시 추첨 방식으로 공개합니다.
-    setRevealMode(numbers.length > 1 ? "simultaneous" : revealMode);
+    // React 상태 업데이트는 즉시 반영되지 않으므로 기존 revealMode를 재사용하면
+    // 랜덤 1개 선택에서도 이전의 "simultaneous" 값이 남아 동시 감정 화면이 열릴 수 있습니다.
+    // 선택된 번호 개수만 기준으로 공개 방식을 확정합니다.
+    setRevealMode(numbers.length > 1 ? "simultaneous" : "sequential");
     setPendingNumbers(numbers);
     setPendingPlayer(player);
     setPendingMode(mode);
@@ -1868,6 +1870,9 @@ function LivePage({ onLogout, user }) {
       `${player}님의 번호 ${confirmedNumbers.join(", ")}번이 즉시 확정되었습니다. AI 분석을 시작해 주세요.`,
     );
   };
+
+  const isSimultaneousReveal =
+    isSimultaneousReveal && pendingNumbers.length > 1;
 
   const advanceReveal = async () => {
     if (isAppraising || appraisalFinished) return;
@@ -1914,7 +1919,7 @@ function LivePage({ onLogout, user }) {
       playDrawStartSound();
       setIsAppraising(true);
       setNotice(
-        revealMode === "simultaneous"
+        isSimultaneousReveal
           ? `${pendingPlayer}님의 ${appraisalResults.length}개 상품을 동시에 분석 중입니다...`
           : `${pendingPlayer}님의 ${activeRevealIndex + 1}번째 번호를 분석 중입니다...`,
       );
@@ -1923,7 +1928,7 @@ function LivePage({ onLogout, user }) {
       // 동시추첨은 첫 번째 상품이 아니라 전체 결과 중 가장 높은 등급을 분석합니다.
       const rarityPriority = { S: 4, A: 3, B: 2, C: 1 };
       const analysisTarget =
-        revealMode === "simultaneous"
+        isSimultaneousReveal
           ? appraisalResults.reduce((highest, item) => {
               if (!highest) return item;
 
@@ -1988,7 +1993,7 @@ function LivePage({ onLogout, user }) {
       }
 
       // 동시추첨에 S등급이 포함되면 최종 상품 공개 전이 아니라 AI 분석 화면에서 즉시 연출합니다.
-      if (revealMode === "simultaneous" && finalRarity === "S") {
+      if (isSimultaneousReveal && finalRarity === "S") {
         setHighRarityAlert(true);
         setNotice("⚠ HIGH RARITY DETECTED · S등급 상품이 감지되었습니다.");
         playDrawRevealSound(true);
@@ -2005,7 +2010,7 @@ function LivePage({ onLogout, user }) {
       setRevealStep(2);
       setIsAppraising(false);
       setNotice(
-        revealMode === "simultaneous"
+        isSimultaneousReveal
           ? finalRarity === "S"
             ? "AI 분석 완료 · S등급 포함이 확인되었습니다. 공개 버튼을 눌러 주세요."
             : "AI 분석 완료 · 결과는 아직 비공개입니다. 공개 버튼을 눌러 주세요."
@@ -2016,7 +2021,7 @@ function LivePage({ onLogout, user }) {
 
     if (revealStep === 2) {
       const resultsToReveal =
-        revealMode === "simultaneous" ? appraisalResults : [result];
+        isSimultaneousReveal ? appraisalResults : [result];
       const hasSGrade = resultsToReveal.some(
         (item) => String(item?.rarity || "").toUpperCase() === "S",
       );
@@ -2036,7 +2041,7 @@ function LivePage({ onLogout, user }) {
 
       setRevealStep(4);
 
-      if (revealMode === "simultaneous") {
+      if (isSimultaneousReveal) {
         setRevealedIndexes(appraisalResults.map((_, index) => index));
         setAppraisalFinished(true);
         setNotice(`${pendingPlayer}님의 모든 상품이 동시에 공개되었습니다.`);
@@ -6867,7 +6872,7 @@ function LivePage({ onLogout, user }) {
                 <h2>{pendingPlayer}님의 상품 분석</h2>
                 <p>
                   {pendingMode} ·{" "}
-                  {revealMode === "simultaneous"
+                  {isSimultaneousReveal
                     ? `${pendingNumbers.length}개 동시 진행`
                     : `${activeRevealIndex + 1}/${pendingNumbers.length}`}
                 </p>
@@ -6893,7 +6898,7 @@ function LivePage({ onLogout, user }) {
                   </div>
                 </div>
               )}
-              {revealMode === "simultaneous" ? (
+              {isSimultaneousReveal ? (
                 <div
                   ref={simultaneousScrollRef}
                   className={`ai-core simultaneous-core step-${revealStep} ${isAppraising ? "scanning" : ""}`}
