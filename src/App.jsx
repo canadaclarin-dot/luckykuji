@@ -1382,7 +1382,7 @@ function LivePage({ onLogout, user }) {
   const randomCount = 0;
 
   useEffect(() => {
-    if (revealMode !== "simultaneous" || revealStep < 2) return;
+    if (pendingNumbers.length < 1 || revealStep < 2) return;
 
     const frame = window.requestAnimationFrame(() => {
       const container = simultaneousScrollRef.current;
@@ -1846,7 +1846,8 @@ function LivePage({ onLogout, user }) {
     // React 상태 업데이트는 즉시 반영되지 않으므로 기존 revealMode를 재사용하면
     // 랜덤 1개 선택에서도 이전의 "simultaneous" 값이 남아 동시 감정 화면이 열릴 수 있습니다.
     // 선택된 번호 개수만 기준으로 공개 방식을 확정합니다.
-    setRevealMode(numbers.length > 1 ? "simultaneous" : "sequential");
+    // 1개 선택도 여러 개 선택과 동일한 동시 감정 화면을 사용합니다.
+    setRevealMode("simultaneous");
     setPendingNumbers(numbers);
     setPendingPlayer(player);
     setPendingMode(mode);
@@ -1916,7 +1917,7 @@ function LivePage({ onLogout, user }) {
       playDrawStartSound();
       setIsAppraising(true);
       setNotice(
-        (revealMode === "simultaneous" && pendingNumbers.length > 1)
+        (pendingNumbers.length >= 1)
           ? `${pendingPlayer}님의 ${appraisalResults.length}개 상품을 동시에 분석 중입니다...`
           : `${pendingPlayer}님의 ${activeRevealIndex + 1}번째 번호를 분석 중입니다...`,
       );
@@ -1925,7 +1926,7 @@ function LivePage({ onLogout, user }) {
       // 동시추첨은 첫 번째 상품이 아니라 전체 결과 중 가장 높은 등급을 분석합니다.
       const rarityPriority = { S: 4, A: 3, B: 2, C: 1 };
       const analysisTarget =
-        (revealMode === "simultaneous" && pendingNumbers.length > 1)
+        (pendingNumbers.length >= 1)
           ? appraisalResults.reduce((highest, item) => {
               if (!highest) return item;
 
@@ -1990,7 +1991,7 @@ function LivePage({ onLogout, user }) {
       }
 
       // 동시추첨에 S등급이 포함되면 최종 상품 공개 전이 아니라 AI 분석 화면에서 즉시 연출합니다.
-      if ((revealMode === "simultaneous" && pendingNumbers.length > 1) && finalRarity === "S") {
+      if ((pendingNumbers.length >= 1) && finalRarity === "S") {
         setHighRarityAlert(true);
         setNotice("⚠ HIGH RARITY DETECTED · S등급 상품이 감지되었습니다.");
         playDrawRevealSound(true);
@@ -2007,7 +2008,7 @@ function LivePage({ onLogout, user }) {
       setRevealStep(2);
       setIsAppraising(false);
       setNotice(
-        (revealMode === "simultaneous" && pendingNumbers.length > 1)
+        (pendingNumbers.length >= 1)
           ? finalRarity === "S"
             ? "AI 분석 완료 · S등급 포함이 확인되었습니다. 공개 버튼을 눌러 주세요."
             : "AI 분석 완료 · 결과는 아직 비공개입니다. 공개 버튼을 눌러 주세요."
@@ -2018,7 +2019,7 @@ function LivePage({ onLogout, user }) {
 
     if (revealStep === 2) {
       const resultsToReveal =
-        (revealMode === "simultaneous" && pendingNumbers.length > 1) ? appraisalResults : [result];
+        (pendingNumbers.length >= 1) ? appraisalResults : [result];
       const hasSGrade = resultsToReveal.some(
         (item) => String(item?.rarity || "").toUpperCase() === "S",
       );
@@ -2038,7 +2039,7 @@ function LivePage({ onLogout, user }) {
 
       setRevealStep(4);
 
-      if ((revealMode === "simultaneous" && pendingNumbers.length > 1)) {
+      if ((pendingNumbers.length >= 1)) {
         setRevealedIndexes(appraisalResults.map((_, index) => index));
         setAppraisalFinished(true);
         setNotice(`${pendingPlayer}님의 모든 상품이 동시에 공개되었습니다.`);
@@ -2296,6 +2297,32 @@ function LivePage({ onLogout, user }) {
     setIsPreparing(false);
   };
 
+  // 랜덤 번호 선택은 감정창의 대기 화면에서 멈추지 않고
+  // 상태가 모두 반영된 다음 AI 분석을 자동으로 시작합니다.
+  useEffect(() => {
+    if (
+      pendingMode !== "랜덤 선택" ||
+      pendingNumbers.length < 1 ||
+      revealStep !== 0 ||
+      isAppraising ||
+      appraisalFinished
+    ) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      void advanceReveal();
+    }, 180);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    pendingMode,
+    pendingNumbers,
+    revealStep,
+    isAppraising,
+    appraisalFinished,
+  ]);
+
   const toggleManualNumber = (number) => {
     if (
       usedNumbers.includes(number) ||
@@ -2384,9 +2411,7 @@ function LivePage({ onLogout, user }) {
       return;
     }
 
-    setRevealMode(
-      manualNumbers.length > 1 ? "simultaneous" : "sequential",
-    );
+    setRevealMode("simultaneous");
 
     openAppraisal(
       [...manualNumbers],
@@ -6869,7 +6894,7 @@ function LivePage({ onLogout, user }) {
                 <h2>{pendingPlayer}님의 상품 분석</h2>
                 <p>
                   {pendingMode} ·{" "}
-                  {(revealMode === "simultaneous" && pendingNumbers.length > 1)
+                  {(pendingNumbers.length >= 1)
                     ? `${pendingNumbers.length}개 동시 진행`
                     : `${activeRevealIndex + 1}/${pendingNumbers.length}`}
                 </p>
@@ -6895,7 +6920,7 @@ function LivePage({ onLogout, user }) {
                   </div>
                 </div>
               )}
-              {(revealMode === "simultaneous" && pendingNumbers.length > 1) ? (
+              {(pendingNumbers.length >= 1) ? (
                 <div
                   ref={simultaneousScrollRef}
                   className={`ai-core simultaneous-core step-${revealStep} ${isAppraising ? "scanning" : ""}`}
@@ -7421,11 +7446,264 @@ function LivePage({ onLogout, user }) {
                   )}
 
                   {revealStep === 1 && (
-                    <div className="reveal-panel scan-panel">
-                      <div className="scanner-orb"><span /></div>
-                      <span className="panel-kicker">AI ANALYZING</span>
-                      <h3>상품 데이터 분석 중</h3>
-                      <div className="analysis-lines"><i /><i /><i /></div>
+                    <div
+                      className="reveal-panel scan-panel"
+                      style={{
+                        width: "min(720px, calc(100% - 32px))",
+                        padding: "24px 28px 28px",
+                        border: "1px solid rgba(72, 190, 255, 0.32)",
+                        borderRadius: "22px",
+                        background:
+                          "linear-gradient(180deg, rgba(5,20,34,.96), rgba(3,13,24,.98))",
+                        boxShadow:
+                          "0 0 45px rgba(31,165,255,.12), inset 0 0 32px rgba(29,151,224,.05)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "18px",
+                          marginBottom: "20px",
+                        }}
+                      >
+                        <div
+                          className="scanner-orb"
+                          style={{
+                            width: "86px",
+                            height: "86px",
+                            minWidth: "86px",
+                            margin: 0,
+                          }}
+                        >
+                          <span />
+                        </div>
+
+                        <div style={{ textAlign: "left" }}>
+                          <span className="panel-kicker">
+                            {analysisPhase === "value"
+                              ? "VALUE SCANNING"
+                              : analysisPhase === "rarity"
+                                ? "RARITY DECODING"
+                                : "AI ANALYZING"}
+                          </span>
+                          <h3 style={{ margin: "7px 0 0" }}>
+                            {analysisPhase === "value"
+                              ? "가치 분석 중"
+                              : analysisPhase === "rarity"
+                                ? "희귀도 분석 중"
+                                : "상품 데이터 분석 중"}
+                          </h3>
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                          gap: "14px",
+                          width: "100%",
+                        }}
+                      >
+                        <div
+                          style={{
+                            position: "relative",
+                            overflow: "hidden",
+                            minHeight: "112px",
+                            padding: "17px 18px",
+                            borderRadius: "15px",
+                            border:
+                              analysisPhase === "value"
+                                ? "1px solid rgba(255,211,77,.78)"
+                                : "1px solid rgba(62,139,190,.34)",
+                            background:
+                              analysisPhase === "value"
+                                ? "radial-gradient(circle at 50% 50%, rgba(255,204,60,.13), rgba(5,20,33,.92) 68%)"
+                                : "rgba(5,20,33,.78)",
+                            boxShadow:
+                              analysisPhase === "value"
+                                ? "0 0 26px rgba(255,196,45,.17), inset 0 0 22px rgba(255,208,66,.07)"
+                                : "none",
+                            transition: "all 220ms ease",
+                          }}
+                        >
+                          {analysisPhase === "value" && (
+                            <span
+                              style={{
+                                position: "absolute",
+                                inset: "0 auto 0 -35%",
+                                width: "34%",
+                                background:
+                                  "linear-gradient(90deg, transparent, rgba(255,226,126,.18), transparent)",
+                                animation: "valueScanSweep 900ms linear infinite",
+                                transform: "skewX(-16deg)",
+                              }}
+                            />
+                          )}
+
+                          <span
+                            style={{
+                              display: "block",
+                              marginBottom: "11px",
+                              color: "rgba(151,190,214,.78)",
+                              fontSize: "11px",
+                              fontWeight: 900,
+                              letterSpacing: ".14em",
+                            }}
+                          >
+                            가치
+                          </span>
+
+                          <strong
+                            key={`single-stars-${displayStars}`}
+                            style={{
+                              position: "relative",
+                              display: "block",
+                              color: "#ffd34d",
+                              fontSize: "31px",
+                              lineHeight: 1,
+                              letterSpacing: "3px",
+                              textShadow: "0 0 18px rgba(255,204,61,.44)",
+                              animation:
+                                analysisPhase === "value"
+                                  ? "analysisValuePop 230ms ease-out"
+                                  : "none",
+                            }}
+                          >
+                            {"★".repeat(displayStars)}
+                            {"☆".repeat(5 - displayStars)}
+                          </strong>
+
+                          <small
+                            style={{
+                              display: "block",
+                              marginTop: "12px",
+                              color:
+                                analysisPhase === "value"
+                                  ? "rgba(255,223,119,.9)"
+                                  : "rgba(123,158,181,.6)",
+                              fontWeight: 800,
+                            }}
+                          >
+                            {analysisPhase === "value"
+                              ? "측정값 변동 중..."
+                              : analysisPhase === "rarity" ||
+                                  analysisPhase === "complete"
+                                ? "가치 분석 완료"
+                                : "대기 중"}
+                          </small>
+                        </div>
+
+                        <div
+                          style={{
+                            position: "relative",
+                            overflow: "hidden",
+                            minHeight: "112px",
+                            padding: "17px 18px",
+                            borderRadius: "15px",
+                            border:
+                              analysisPhase === "rarity"
+                                ? "1px solid rgba(76,205,255,.82)"
+                                : "1px solid rgba(62,139,190,.34)",
+                            background:
+                              analysisPhase === "rarity"
+                                ? "radial-gradient(circle at 50% 50%, rgba(53,183,255,.14), rgba(5,20,33,.92) 68%)"
+                                : "rgba(5,20,33,.78)",
+                            boxShadow:
+                              analysisPhase === "rarity"
+                                ? "0 0 28px rgba(42,179,255,.2), inset 0 0 24px rgba(62,196,255,.08)"
+                                : "none",
+                            transition: "all 220ms ease",
+                          }}
+                        >
+                          {analysisPhase === "rarity" && (
+                            <span
+                              style={{
+                                position: "absolute",
+                                left: 0,
+                                right: 0,
+                                top: "12%",
+                                height: "2px",
+                                background:
+                                  "linear-gradient(90deg, transparent, #5cd8ff, transparent)",
+                                boxShadow: "0 0 14px #5cd8ff",
+                                animation: "rarityScanLine 950ms ease-in-out infinite",
+                              }}
+                            />
+                          )}
+
+                          <span
+                            style={{
+                              display: "block",
+                              marginBottom: "6px",
+                              color: "rgba(151,190,214,.78)",
+                              fontSize: "11px",
+                              fontWeight: 900,
+                              letterSpacing: ".14em",
+                            }}
+                          >
+                            희귀도
+                          </span>
+
+                          <strong
+                            key={`single-rarity-${displayRarity}`}
+                            style={{
+                              position: "relative",
+                              display: "block",
+                              color:
+                                displayRarity === "S"
+                                  ? "#ffd34d"
+                                  : displayRarity === "A"
+                                    ? "#a98cff"
+                                    : displayRarity === "B"
+                                      ? "#62d8ff"
+                                      : "#9eb5c5",
+                              fontSize: "50px",
+                              lineHeight: 1,
+                              fontWeight: 1000,
+                              textShadow:
+                                analysisPhase === "rarity"
+                                  ? "0 0 24px currentColor"
+                                  : "none",
+                              animation:
+                                analysisPhase === "rarity"
+                                  ? "analysisRarityFlip 220ms ease-out"
+                                  : "none",
+                            }}
+                          >
+                            {analysisPhase === "value" ? "LOCKED" : displayRarity}
+                          </strong>
+
+                          <small
+                            style={{
+                              display: "block",
+                              marginTop: "7px",
+                              color:
+                                analysisPhase === "rarity"
+                                  ? "rgba(126,220,255,.94)"
+                                  : "rgba(123,158,181,.6)",
+                              fontWeight: 800,
+                            }}
+                          >
+                            {analysisPhase === "value"
+                              ? "가치 분석 후 진행"
+                              : analysisPhase === "rarity"
+                                ? "등급 데이터 해독 중..."
+                                : analysisPhase === "complete"
+                                  ? "희귀도 분석 완료"
+                                  : "대기 중"}
+                          </small>
+                        </div>
+                      </div>
+
+                      <div
+                        className="analysis-lines"
+                        style={{ marginTop: "20px" }}
+                      >
+                        <i />
+                        <i />
+                        <i />
+                      </div>
                     </div>
                   )}
 
