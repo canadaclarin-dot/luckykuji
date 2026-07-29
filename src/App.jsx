@@ -3960,9 +3960,9 @@ function LivePage({ onLogout, user }) {
           </div>
 
           <div className="broadcast-stat">
-            <span>남은공</span>
-            <strong>{remainingCount.toLocaleString()}</strong>
-          </div>
+  <span>남은 번호</span>
+  <strong>{remainingCount.toLocaleString()}개</strong>
+</div>
 
           <div className="broadcast-stat">
             <span>개봉</span>
