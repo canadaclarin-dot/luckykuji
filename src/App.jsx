@@ -7243,17 +7243,42 @@ function LivePage({ onLogout, user }) {
                                   )}
                                 </div>
                                 <div style={{textAlign:"left",minWidth:0,overflow:"hidden",transform:"translate(3px, 3px)"}}>
-                                  <h3 style={{
-                                    fontSize:"42px",
-                                    margin:"0 0 12px",
-                                    fontWeight:900,
-                                    overflow:"hidden",
-                                    textOverflow:"ellipsis",
-                                    whiteSpace:"nowrap"
-                                  }}>
+                                  <h3
+                                    style={{
+                                      fontSize: "42px",
+                                      margin: "0 0 12px",
+                                      fontWeight: 900,
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                      color:
+                                        String(result.rarity || "").toUpperCase() === "S"
+                                          ? "#ff3f4f"
+                                          : "#f8fbff",
+                                      textShadow:
+                                        String(result.rarity || "").toUpperCase() === "S"
+                                          ? "0 0 18px rgba(255, 45, 68, .58)"
+                                          : "none",
+                                    }}
+                                  >
                                     {result.prizeName}
                                   </h3>
-                                  <p style={{fontSize:"23px",lineHeight:1,margin:0,fontWeight:800}}>
+                                  <p
+                                    style={{
+                                      fontSize: "23px",
+                                      lineHeight: 1,
+                                      margin: 0,
+                                      fontWeight: 800,
+                                      color:
+                                        String(result.rarity || "").toUpperCase() === "S"
+                                          ? "#ff8b95"
+                                          : "rgba(226, 232, 240, .78)",
+                                      textShadow:
+                                        String(result.rarity || "").toUpperCase() === "S"
+                                          ? "0 0 12px rgba(255, 45, 68, .34)"
+                                          : "none",
+                                    }}
+                                  >
                                     {result.grade}
                                   </p>
                                 </div>
@@ -7466,6 +7491,18 @@ function LivePage({ onLogout, user }) {
                                   lineHeight: 1.15,
                                   margin: "0 0 5px",
                                   fontWeight: 900,
+                                  color:
+                                    String(
+                                      lockedResults[activeRevealIndex]?.rarity || "",
+                                    ).toUpperCase() === "S"
+                                      ? "#ff3f4f"
+                                      : "#f8fbff",
+                                  textShadow:
+                                    String(
+                                      lockedResults[activeRevealIndex]?.rarity || "",
+                                    ).toUpperCase() === "S"
+                                      ? "0 0 16px rgba(255, 45, 68, .55)"
+                                      : "none",
                                 }}
                               >
                                 {lockedResults[activeRevealIndex]?.prizeName}
@@ -7476,7 +7513,18 @@ function LivePage({ onLogout, user }) {
                                   lineHeight: 1.2,
                                   margin: 0,
                                   fontWeight: 700,
-                                  opacity: 0.9,
+                                  color:
+                                    String(
+                                      lockedResults[activeRevealIndex]?.rarity || "",
+                                    ).toUpperCase() === "S"
+                                      ? "#ff8b95"
+                                      : "rgba(226, 232, 240, .78)",
+                                  textShadow:
+                                    String(
+                                      lockedResults[activeRevealIndex]?.rarity || "",
+                                    ).toUpperCase() === "S"
+                                      ? "0 0 10px rgba(255, 45, 68, .32)"
+                                      : "none",
                                 }}
                               >
                                 {lockedResults[activeRevealIndex]?.grade}
