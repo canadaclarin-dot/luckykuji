@@ -1872,15 +1872,50 @@ function LivePage({ onLogout, user }) {
   const advanceReveal = async () => {
     if (isAppraising || appraisalFinished) return;
 
-    const result = lockedResults[activeRevealIndex];
-    if (!result) return;
+    // 랜덤 번호 선택 직후 React 상태 저장이 늦어 lockedResults가 비어 보이는 경우를 복구합니다.
+    // 이전 코드는 결과가 없으면 아무 안내 없이 return해서 감정 화면이 멈춘 것처럼 보였습니다.
+    const recoveredResults =
+      Array.isArray(lockedResults) && lockedResults.length > 0
+        ? lockedResults
+        : getAssignedResults(pendingNumbers, prizeMap, prizes);
+
+    const appraisalResults = Array.isArray(recoveredResults)
+      ? recoveredResults
+      : [];
+
+    if (appraisalResults.length !== pendingNumbers.length) {
+      setIsAppraising(false);
+      setNotice(
+        "감정 결과를 불러오지 못했습니다. 창을 닫지 말고 다시 AI 분석 시작을 눌러 주세요.",
+      );
+      window.alert(
+        "선택한 번호의 상품 결과를 불러오지 못했습니다. 상품 자동 배치 상태를 확인해 주세요.",
+      );
+      return;
+    }
+
+    if (lockedResults.length === 0) {
+      setLockedResults(appraisalResults);
+    }
+
+    const safeRevealIndex = Math.min(
+      Math.max(0, activeRevealIndex),
+      appraisalResults.length - 1,
+    );
+    const result = appraisalResults[safeRevealIndex];
+
+    if (!result) {
+      setIsAppraising(false);
+      setNotice("감정할 상품 결과가 없습니다. 감정 화면을 닫고 다시 시도해 주세요.");
+      return;
+    }
 
     if (revealStep === 0) {
       playDrawStartSound();
       setIsAppraising(true);
       setNotice(
         revealMode === "simultaneous"
-          ? `${pendingPlayer}님의 ${lockedResults.length}개 상품을 동시에 분석 중입니다...`
+          ? `${pendingPlayer}님의 ${appraisalResults.length}개 상품을 동시에 분석 중입니다...`
           : `${pendingPlayer}님의 ${activeRevealIndex + 1}번째 번호를 분석 중입니다...`,
       );
       setRevealStep(1);
@@ -1889,7 +1924,7 @@ function LivePage({ onLogout, user }) {
       const rarityPriority = { S: 4, A: 3, B: 2, C: 1 };
       const analysisTarget =
         revealMode === "simultaneous"
-          ? lockedResults.reduce((highest, item) => {
+          ? appraisalResults.reduce((highest, item) => {
               if (!highest) return item;
 
               const highestRarity = String(highest?.rarity || "C").toUpperCase();
@@ -1981,7 +2016,7 @@ function LivePage({ onLogout, user }) {
 
     if (revealStep === 2) {
       const resultsToReveal =
-        revealMode === "simultaneous" ? lockedResults : [result];
+        revealMode === "simultaneous" ? appraisalResults : [result];
       const hasSGrade = resultsToReveal.some(
         (item) => String(item?.rarity || "").toUpperCase() === "S",
       );
@@ -2002,7 +2037,7 @@ function LivePage({ onLogout, user }) {
       setRevealStep(4);
 
       if (revealMode === "simultaneous") {
-        setRevealedIndexes(lockedResults.map((_, index) => index));
+        setRevealedIndexes(appraisalResults.map((_, index) => index));
         setAppraisalFinished(true);
         setNotice(`${pendingPlayer}님의 모든 상품이 동시에 공개되었습니다.`);
       } else {
@@ -2015,7 +2050,7 @@ function LivePage({ onLogout, user }) {
       const nextRevealed = [...revealedIndexes, activeRevealIndex];
       setRevealedIndexes(nextRevealed);
 
-      if (activeRevealIndex + 1 >= lockedResults.length) {
+      if (activeRevealIndex + 1 >= appraisalResults.length) {
         setAppraisalFinished(true);
         setNotice(`${pendingPlayer}님의 모든 상품이 공개되었습니다. 결과를 확정해 주세요.`);
         return;
@@ -7252,11 +7287,11 @@ function LivePage({ onLogout, user }) {
                                       textOverflow: "ellipsis",
                                       whiteSpace: "nowrap",
                                       color:
-                                        String(result.rarity || "").toUpperCase() === "S"
+                                        (String(result.rarity || "").toUpperCase() === "S" || Number(result.stars) >= 5)
                                           ? "#ff3f4f"
                                           : "#f8fbff",
                                       textShadow:
-                                        String(result.rarity || "").toUpperCase() === "S"
+                                        (String(result.rarity || "").toUpperCase() === "S" || Number(result.stars) >= 5)
                                           ? "0 0 18px rgba(255, 45, 68, .58)"
                                           : "none",
                                     }}
@@ -7270,11 +7305,11 @@ function LivePage({ onLogout, user }) {
                                       margin: 0,
                                       fontWeight: 800,
                                       color:
-                                        String(result.rarity || "").toUpperCase() === "S"
+                                        (String(result.rarity || "").toUpperCase() === "S" || Number(result.stars) >= 5)
                                           ? "#ff8b95"
                                           : "rgba(226, 232, 240, .78)",
                                       textShadow:
-                                        String(result.rarity || "").toUpperCase() === "S"
+                                        (String(result.rarity || "").toUpperCase() === "S" || Number(result.stars) >= 5)
                                           ? "0 0 12px rgba(255, 45, 68, .34)"
                                           : "none",
                                     }}
@@ -7492,15 +7527,17 @@ function LivePage({ onLogout, user }) {
                                   margin: "0 0 5px",
                                   fontWeight: 900,
                                   color:
-                                    String(
+                                    (String(
                                       lockedResults[activeRevealIndex]?.rarity || "",
-                                    ).toUpperCase() === "S"
+                                    ).toUpperCase() === "S" ||
+                                      Number(lockedResults[activeRevealIndex]?.stars) >= 5)
                                       ? "#ff3f4f"
                                       : "#f8fbff",
                                   textShadow:
-                                    String(
+                                    (String(
                                       lockedResults[activeRevealIndex]?.rarity || "",
-                                    ).toUpperCase() === "S"
+                                    ).toUpperCase() === "S" ||
+                                      Number(lockedResults[activeRevealIndex]?.stars) >= 5)
                                       ? "0 0 16px rgba(255, 45, 68, .55)"
                                       : "none",
                                 }}
@@ -7514,15 +7551,17 @@ function LivePage({ onLogout, user }) {
                                   margin: 0,
                                   fontWeight: 700,
                                   color:
-                                    String(
+                                    (String(
                                       lockedResults[activeRevealIndex]?.rarity || "",
-                                    ).toUpperCase() === "S"
+                                    ).toUpperCase() === "S" ||
+                                      Number(lockedResults[activeRevealIndex]?.stars) >= 5)
                                       ? "#ff8b95"
                                       : "rgba(226, 232, 240, .78)",
                                   textShadow:
-                                    String(
+                                    (String(
                                       lockedResults[activeRevealIndex]?.rarity || "",
-                                    ).toUpperCase() === "S"
+                                    ).toUpperCase() === "S" ||
+                                      Number(lockedResults[activeRevealIndex]?.stars) >= 5)
                                       ? "0 0 10px rgba(255, 45, 68, .32)"
                                       : "none",
                                 }}
